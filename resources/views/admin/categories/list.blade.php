@@ -3,38 +3,40 @@
     Categories
 @endsection
 @section('css')
-<style>
-.icon-action {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    transition: background-color 0.3s ease;
-    color: #fafffb; /* Màu icon */
-}
+    <style>
+        .icon-action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            transition: background-color 0.3s ease;
+            color: #fafffb;
+            /* Màu icon */
+        }
 
-.icon-action:hover {
-    background-color: #f0f0f0; /* Nền khi hover */
-    color: #000;
-}
+        .icon-action:hover {
+            background-color: #f0f0f0;
+            /* Nền khi hover */
+            color: #000;
+        }
 
-.icon-action + .icon-action {
-    margin-left: 8px; /* Khoảng cách giữa các icon */
-}
+        .icon-action+.icon-action {
+            margin-left: 8px;
+            /* Khoảng cách giữa các icon */
+        }
 
-.icon-action i {
-    width: 18px;
-    height: 18px;
-}
-</style>
-
+        .icon-action i {
+            width: 18px;
+            height: 18px;
+        }
+    </style>
 @endsection
 @section('js')
-<script>
-    feather.replace();
-</script>
+    <script>
+        feather.replace();
+    </script>
 @endsection
 @section('content')
     <div class="content-page">
@@ -49,10 +51,33 @@
                 <div class="row">
                     @include('component.alert')
                     <div class="col-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <a href="{{ route('admin.categories.create-cate') }}" class="btn btn-primary btn-sm">+ Thêm
-                                    danh mục</a>
+                        <div class="card ">
+                            <div class="card-header col-sm-12 row">
+                                <div class="col-sm-6">
+                                    <a href="{{ route('admin.categories.create-cate') }}" class="btn btn-primary btn-sm ">+
+                                        Thêm
+                                        danh mục</a>
+                                </div>
+                                <div class="col-sm-6">
+                                    <form method="GET" action="{{ route('admin.categories.list-cate') }}"
+                                        class="d-flex mb-3">
+
+                                        <input type="text" name="keyword" class="form-control me-2"
+                                            value="{{ request('keyword') }}" placeholder="Search...">
+
+                                        <select name="status" class="form-control me-2">
+                                            <option value="">-- Trạng thái --</option>
+                                            <option value="1" {{ request('status') == '1' ? 'selected' : '' }}>Hiển thị
+                                            </option>
+                                            <option value="0" {{ request('status') == '0' ? 'selected' : '' }}>Ẩn
+                                            </option>
+                                        </select>
+
+                                        <button type="submit" class="btn btn-primary btn-sm">Search</button>
+                                    </form>
+                                </div>
+
+
                             </div>
 
                             <div class="card-body">
@@ -91,8 +116,8 @@
                                                         @csrf
                                                         @method('DELETE')
                                                         <input type="hidden" value="{{ $cate->id }}" name="id">
-                                                        <button type="submit" class="icon-action text-danger" title="Xoá"
-                                                            style="border: none; background: none;">
+                                                        <button type="submit" class="icon-action text-danger"
+                                                            title="Xoá" style="border: none; background: none;">
                                                             <i data-feather="trash-2"></i>
                                                         </button>
                                                     </form>

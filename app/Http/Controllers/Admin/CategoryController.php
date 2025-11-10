@@ -12,9 +12,24 @@ use Illuminate\Validation\Rule;
 
 class CategoryController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $categories = Category::orderBy('created_at', 'desc')->paginate(10);
+        $keyword = $request->keyword;
+        $status  = $request->status;
+
+        $categories = Category::query()
+            ->when($keyword, function ($q) use ($keyword) {
+                $q->where(function ($query) use ($keyword) {
+                    $query->where('name_cate', 'like', "%{$keyword}%")
+                        ->orWhere('description', 'like', "%{$keyword}%");
+                });
+            })
+            ->when($status !== null && $status !== '', function ($q) use ($status) {
+                $q->where('status', $status); // 1 = active, 0 = inactive
+            })
+            ->orderBy('created_at', 'desc')
+            ->paginate(10)
+            ->appends($request->all());
         return view('admin.categories.list', compact('categories'));
     }
     public function create()
