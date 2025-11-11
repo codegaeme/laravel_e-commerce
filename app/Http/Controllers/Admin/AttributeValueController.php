@@ -92,7 +92,7 @@ class AttributeValueController extends Controller
     public function update(Request $request, string $id)
     {
         $request->validate([
-            'name' => 'required|string|max:255|unique:attributes,name'
+            'name' => 'required|string|max:255|unique:product_attribute_values,value'
         ]);
         $att = ProductAttributeValue::findOrFail($id);
         $att->update([
