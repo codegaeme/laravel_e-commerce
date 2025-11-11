@@ -21,17 +21,17 @@ Route::middleware([
 Route::get('/my-order-detail/{id}', [App\Http\Controllers\Client\OrderController::class, 'myOrderDetail'])->name('myOrderDetail')->middleware('auth');
 Route::get('/my-order', [App\Http\Controllers\Client\OrderController::class, 'myOrder'])->name('myOrder')->middleware('auth');
 
-Route::post('/checkout-post', [App\Http\Controllers\Client\CheckoutController::class, 'checkoutPost'])->name('checkoutPost');
+Route::post('/checkout-post', [App\Http\Controllers\Client\CheckoutController::class, 'checkoutPost'])->name('checkoutPost')->middleware('auth');
 
 Route::get('/success', [App\Http\Controllers\Client\CheckoutController::class, 'success'])->name('success')->middleware('auth');
 Route::post('/shippingaddressPost', [App\Http\Controllers\Client\CheckoutController::class, 'spadPost'])->name('shippingAdddressPost')->middleware('auth');
-Route::get('/shippingaddress', [App\Http\Controllers\Client\CheckoutController::class, 'spad'])->name('shippingAdddress');
-Route::post('/checkout', [App\Http\Controllers\Client\CheckoutController::class, 'checkout'])->name('checkout');
-Route::post('/cart/update', [App\Http\Controllers\Client\CartController::class, 'update'])->name('cart.update');
-Route::delete('/cart/remove/{id}', [App\Http\Controllers\Client\CartController::class, 'remove'])->name('cart.remove');
+Route::get('/shippingaddress', [App\Http\Controllers\Client\CheckoutController::class, 'spad'])->name('shippingAdddress')->middleware('auth');
+Route::post('/checkout', [App\Http\Controllers\Client\CheckoutController::class, 'checkout'])->name('checkout')->middleware('auth');
+Route::post('/cart/update', [App\Http\Controllers\Client\CartController::class, 'update'])->name('cart.update')->middleware('auth');
+Route::delete('/cart/remove/{id}', [App\Http\Controllers\Client\CartController::class, 'remove'])->name('cart.remove')->middleware('auth');
 
-Route::post('addcart', [App\Http\Controllers\Client\CartController::class, 'add'])->name('add-cart');
-Route::get('cart', [App\Http\Controllers\Client\CartController::class, 'list'])->name('list-cart');
+Route::post('addcart', [App\Http\Controllers\Client\CartController::class, 'add'])->name('add-cart')->middleware('auth');
+Route::get('cart', [App\Http\Controllers\Client\CartController::class, 'list'])->name('list-cart')->middleware('auth');
 Route::get('/', [App\Http\Controllers\Client\HomeController::class, 'home'])->name('home');
 Route::get('/product/detail/{id}', [App\Http\Controllers\Client\ProductClientController::class, 'detail'])->name('product.detail');
 Route::post('/find-variant', [App\Http\Controllers\Client\ProductClientController::class, 'findVariant'])->name('findVariant');
@@ -39,7 +39,7 @@ Route::post('/find-variant', [App\Http\Controllers\Client\ProductClientControlle
 
 Route::post('/renderVariant', [App\Http\Controllers\Client\ProductClientController::class, 'variant'])->name('renderVarianrt');
 
-Route::prefix('admin')->as('admin.')->group(function () {
+Route::prefix('admin')->as('admin.')->middleware('auth')->group(function () {
 
     Route::get('/t', [App\Http\Controllers\Admin\ProductController::class, 'test'])->name('test');
     Route::post('/test', [App\Http\Controllers\Admin\ProductController::class, 'createPost'])->name('testpost');
@@ -80,11 +80,11 @@ Route::prefix('admin')->as('admin.')->group(function () {
     });
     Route::get('/dh', function () {
         return view('admin.dashboard');
-    })->name('dashboard');
+    })->name('dashboard')->middleware('auth');
 
     //orders
 
-    Route::get('orders', [App\Http\Controllers\Admin\OrderManagerController::class, 'index'])->name('order-list');
-    Route::put('update-status-orders', [App\Http\Controllers\Admin\OrderManagerController::class, 'changeStt'])->name('update-status-orders');
-    Route::put('update-status-orders-cus', [App\Http\Controllers\Admin\OrderManagerController::class, 'changeSttCus'])->name('update-status-orders-cus');
+    Route::get('orders', [App\Http\Controllers\Admin\OrderManagerController::class, 'index'])->name('order-list')->middleware('auth');
+    Route::put('update-status-orders', [App\Http\Controllers\Admin\OrderManagerController::class, 'changeStt'])->name('update-status-orders')->middleware('auth');
+    Route::put('update-status-orders-cus', [App\Http\Controllers\Admin\OrderManagerController::class, 'changeSttCus'])->name('update-status-orders-cus')->middleware('auth');
 });

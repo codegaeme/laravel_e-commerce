@@ -394,8 +394,9 @@
                                                 </div>
                                             </div>
                                         </div>
-
+                                        <input type="hidden" name="type_pro" value="0">
                                         <button type="submit" class="btn btn-primary btn-sm mt-3"> + Thêm sản phẩm
+
                                         </button>
                                         <a href="#" class="btn btn-secondary btn-sm mt-3">Quay lại</a>
                                     </form>

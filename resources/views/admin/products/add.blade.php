@@ -8,6 +8,19 @@
             display: none !important;
         }
 
+        /* Dùng class của Bootstrap để ẩn */
+        .visually-hidden {
+            position: absolute !important;
+            width: 1px !important;
+            height: 1px !important;
+            padding: 0 !important;
+            margin: -1px !important;
+            overflow: hidden !important;
+            clip: rect(0, 0, 0, 0) !important;
+            white-space: nowrap !important;
+            border: 0 !important;
+        }
+
         .image-wrapper {
             position: relative;
             display: inline-block;
@@ -34,16 +47,29 @@
             font-size: 14px;
             line-height: 20px;
             cursor: pointer;
+            padding: 0;
+            text-align: center;
+        }
+
+        /* Thêm style cho nút active để dễ nhận biết */
+        .attribute-btn.active {
+            border-color: #007bff;
+            background-color: #007bff;
+            color: white !important;
+        }
+
+        /* Đảm bảo phần biến thể luôn hiển thị */
+        .varriant {
+            display: block !important;
         }
     </style>
 @endsection
 @section('js')
-    {{-- //xử lí hình ảnh  --}}
+    {{-- //xử lí hình ảnh --}}
     <script src="https://cdn.ckeditor.com/ckeditor5/41.0.0/classic/ckeditor.js"></script>
     <script>
+        // Khối JS xử lý hình ảnh (Giữ nguyên)
         window.addEventListener("load", function() {
-            // ... Logic khởi tạo ảnh cũ/album hiện tại ...
-
             // Khởi tạo CKEditor cho textarea có ID là 'descriptionEditor'
             ClassicEditor
                 .create(document.querySelector('#descriptionEditor'))
@@ -100,7 +126,6 @@
                 wrapper.classList.add('image-wrapper');
 
                 const img = document.createElement('img');
-                // Đường dẫn trả về từ Storage::url() thường là tuyệt đối (bắt đầu bằng /storage/...)
                 img.src = path;
 
                 const removeBtn = createRemoveButton(() => {
@@ -138,7 +163,6 @@
             imageContainer.innerHTML = '';
 
             // 1. Hiển thị ảnh cũ từ đường dẫn tạm thời
-            // Duyệt qua mảng copy để tránh lỗi index khi xóa
             temporaryImagePaths.slice().forEach((path, originalIndex) => {
                 const wrapper = document.createElement('div');
                 wrapper.classList.add('image-wrapper');
@@ -218,27 +242,11 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            // Chuyển đổi giữa form đơn giản và biến thể
-            const select = document.getElementById("type_product");
-            const simpleForm = document.querySelector(".simble");
-            const variantForm = document.querySelector(".varriant");
-
-            function toggleForms() {
-                if (select.value === "0") {
-                    simpleForm.style.display = "block";
-                    variantForm.style.display = "none";
-                } else {
-                    simpleForm.style.display = "none";
-                    variantForm.style.display = "block";
-                }
-            }
-
-            select.addEventListener("change", toggleForms);
-            toggleForms();
-
             // Lưu trữ thuộc tính và giá trị đã chọn
-            let selectedAttributes = [];
+            let selectedAttributes = []; // Dùng để lưu trữ ID và Name của thuộc tính
+            // Lưu trữ các giá trị đã chọn: { 'attrId': [{id: valueId, value: valueName}, ...], ... }
             let selectedAttributeValues = {};
+            let currentAttributeId = null; // Biến mới để lưu ID thuộc tính đang mở modal
 
             // Xử lý lưu thuộc tính
             document.getElementById('saveAttributes').addEventListener('click', function() {
@@ -246,158 +254,239 @@
                 const selectedList = document.getElementById('selectedAttributes');
                 const hiddenInput = document.getElementById('selected_attribute_ids');
 
+                // Các khối DOM cần ẩn/hiện
+                const attrWrapper = document.getElementById('selectedAttributesWrapper');
+                const valuesWrapper = document.getElementById('selectedAttributesValuesWrapper');
+                const btnWrapper = document.getElementById('generateVariantsBtnWrapper');
+
                 selectedList.innerHTML = ''; // Xóa các nút cũ
                 selectedAttributes = []; // Reset danh sách thuộc tính
                 let selectedIds = [];
 
-                checkboxes.forEach(function(checkbox) {
-                    const attrName = checkbox.getAttribute('data-name');
-                    const attrId = checkbox.value;
+                // Lấy danh sách ID thuộc tính cũ để kiểm tra xem có thuộc tính nào bị hủy chọn không
+                const oldAttributeIds = Object.keys(selectedAttributeValues);
+                const newAttributeIds = Array.from(checkboxes).map(cb => cb.value);
 
-                    // Tạo nút thuộc tính
-                    const btn = document.createElement('button');
-                    btn.type = 'button';
-                    btn.classList.add('btn', 'btn-outline-primary', 'btn-sm', 'attribute-btn');
-                    btn.textContent = attrName;
-                    btn.setAttribute('data-id', attrId);
+                // Loại bỏ các giá trị thuộc tính của các thuộc tính đã bị hủy chọn
+                oldAttributeIds.forEach(oldId => {
+                    if (!newAttributeIds.includes(oldId)) {
+                        delete selectedAttributeValues[oldId];
+                    }
+                });
 
-                    // Xử lý bấm vào nút thuộc tính để mở modal giá trị
-                    btn.addEventListener('click', async function() {
-                        document.getElementById('attributeValueModalLabel')
-                            .textContent = `Giá trị của "${attrName}"`;
+                if (checkboxes.length > 0) {
+                    attrWrapper.classList.remove('visually-hidden');
+                    valuesWrapper.classList.remove('visually-hidden');
+                    btnWrapper.classList.remove('visually-hidden');
 
-                        try {
-                            const response = await fetch(
-                                `/api/attributevalues/${attrId}`, {
-                                    headers: {
-                                        'X-CSRF-TOKEN': document.querySelector(
-                                            'meta[name="csrf-token"]').content
-                                    }
-                                });
-                            if (!response.ok) throw new Error(
-                                `HTTP error! Status: ${response.status}`);
-                            const attributeValues = await response.json();
+                    checkboxes.forEach(function(checkbox) {
+                        const attrName = checkbox.getAttribute('data-name');
+                        const attrId = checkbox.value;
 
-                            let html = '';
-                            if (!Array.isArray(attributeValues) || attributeValues
-                                .length === 0) {
-                                html = '<p>Không có giá trị thuộc tính nào.</p>';
-                            } else {
-                                attributeValues.forEach(function(value) {
-                                    if (value.id && value.value) {
-                                        html += `
-                                    <div class="form-check">
-                                        <input class="form-check-input attribute-value-checkbox" type="checkbox"
-                                            value="${value.id}" data-name="${value.value}" id="value_${value.id}">
-                                        <label class="form-check-label" for="value_${value.id}">
-                                            ${value.value}
-                                        </label>
-                                    </div>
-                                `;
-                                    }
-                                });
+                        // Tạo nút thuộc tính
+                        const btn = document.createElement('button');
+                        btn.type = 'button';
+                        btn.classList.add('btn', 'btn-outline-primary', 'btn-sm', 'attribute-btn', 'ms-2', 'mb-2');
+                        btn.textContent = attrName;
+                        btn.setAttribute('data-id', attrId);
+
+                        // Xử lý bấm vào nút thuộc tính để mở modal giá trị
+                        btn.addEventListener('click', async function() {
+                            // 1. Cập nhật trạng thái active
+                            document.querySelectorAll('.attribute-btn').forEach(b => b.classList.remove('active'));
+                            btn.classList.add('active');
+
+                            // 2. LƯU ID THUỘC TÍNH HIỆN TẠI
+                            currentAttributeId = attrId;
+
+                            document.getElementById('attributeValueModalLabel')
+                                .textContent = `Giá trị của "${attrName}"`;
+
+                            try {
+                                const response = await fetch(
+                                    `/api/attributevalues/${attrId}`, {
+                                        headers: {
+                                            'X-CSRF-TOKEN': document.querySelector(
+                                                'meta[name="csrf-token"]').content
+                                        }
+                                    });
+                                if (!response.ok) throw new Error(
+                                    `HTTP error! Status: ${response.status}`);
+                                const attributeValues = await response.json();
+
+                                let html = '';
+                                if (!Array.isArray(attributeValues) || attributeValues.length === 0) {
+                                    html = '<p>Không có giá trị thuộc tính nào.</p>';
+                                } else {
+                                    // Lấy danh sách ID giá trị đã chọn cho thuộc tính hiện tại
+                                    // QUAN TRỌNG: Đồng bộ hóa trạng thái
+                                    const selectedValueIds = (selectedAttributeValues[attrId] || []).map(v => String(v.id));
+
+                                    attributeValues.forEach(function(value) {
+                                        if (value.id && value.value) {
+                                            // Kiểm tra nếu ID giá trị đã tồn tại trong mảng đã chọn
+                                            const checked = selectedValueIds.includes(String(value.id)) ? 'checked' : '';
+
+                                            html += `
+                                            <div class="form-check">
+                                                <input class="form-check-input attribute-value-checkbox" type="checkbox"
+                                                    value="${value.id}" data-name="${value.value}" id="value_${value.id}" ${checked}>
+                                                <label class="form-check-label" for="value_${value.id}">
+                                                    ${value.value}
+                                                </label>
+                                            </div>
+                                        `;
+                                        }
+                                    });
+                                }
+
+                                document.getElementById('attributeValuesContent')
+                                    .innerHTML = html;
+
+                                const modal = new bootstrap.Modal(document.getElementById(
+                                    'attributeValueModal'));
+                                modal.show();
+                            } catch (error) {
+                                console.error('Lỗi khi lấy giá trị thuộc tính:', error);
+                                document.getElementById('attributeValuesContent')
+                                    .innerHTML =
+                                    '<p>Lỗi khi tải giá trị. Vui lòng thử lại.</p>';
+                                const modal = new bootstrap.Modal(document.getElementById(
+                                    'attributeValueModal'));
+                                modal.show();
                             }
+                        });
 
-                            document.getElementById('attributeValuesContent')
-                                .innerHTML = html;
+                        selectedList.appendChild(btn);
+                        selectedIds.push(attrId);
+                        selectedAttributes.push({
+                            id: attrId,
+                            name: attrName
+                        });
 
-                            const modal = new bootstrap.Modal(document.getElementById(
-                                'attributeValueModal'));
-                            modal.show();
-                        } catch (error) {
-                            console.error('Lỗi khi lấy giá trị thuộc tính:', error);
-                            document.getElementById('attributeValuesContent')
-                                .innerHTML =
-                                '<p>Lỗi khi tải giá trị. Vui lòng thử lại.</p>';
-                            const modal = new bootstrap.Modal(document.getElementById(
-                                'attributeValueModal'));
-                            modal.show();
+                        // Khởi tạo mảng giá trị nếu chưa có
+                        if (!selectedAttributeValues[attrId]) {
+                            selectedAttributeValues[attrId] = [];
                         }
                     });
 
-                    selectedList.appendChild(btn);
-                    selectedIds.push(attrId);
-                    selectedAttributes.push({
-                        id: attrId,
-                        name: attrName
-                    });
-                });
+                } else {
+                    // Nếu không có thuộc tính nào được chọn, ẩn lại
+                    attrWrapper.classList.add('visually-hidden');
+                    valuesWrapper.classList.add('visually-hidden');
+                    btnWrapper.classList.add('visually-hidden');
+                    document.getElementById('variantListWrapper').classList.add('visually-hidden');
+                }
 
                 hiddenInput.value = selectedIds.join(',');
-                // Không gọi generateVariants() ở đây
             });
 
             // Xử lý lưu giá trị thuộc tính
             document.getElementById('saveAttributeValues').addEventListener('click', function() {
-                const checkboxes = document.querySelectorAll('.attribute-value-checkbox:checked');
+                const checkboxes = document.querySelectorAll('#attributeValuesContent .attribute-value-checkbox:checked');
                 const selectedValuesList = document.getElementById('selectedAttributesValues');
                 const hiddenValuesInput = document.getElementById('selected_attribute_values_ids');
-                let selectedValueIds = hiddenValuesInput.value ? hiddenValuesInput.value.split(',') : [];
 
-                const activeAttributeBtn = document.querySelector('.attribute-btn.active');
-                const attributeId = activeAttributeBtn ? activeAttributeBtn.getAttribute('data-id') : null;
+                // SỬ DỤNG currentAttributeId đã lưu
+                const attributeId = currentAttributeId;
+                if (!attributeId) {
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('attributeValueModal'));
+                    modal.hide();
+                    return;
+                }
 
-                // Xóa các nút giá trị cũ của thuộc tính này
-                const existingValueButtons = selectedValuesList.querySelectorAll(
-                    `button[data-attribute-id="${attributeId}"]`);
-                existingValueButtons.forEach(btn => btn.remove());
+                // 1. Xóa các nút giá trị cũ của thuộc tính này khỏi DOM
+                selectedValuesList.querySelectorAll(`button[data-attribute-id="${attributeId}"]`).forEach(btn => btn.remove());
 
-                // Lưu giá trị thuộc tính
+                // 2. Cập nhật trạng thái (object JS)
                 selectedAttributeValues[attributeId] = [];
+                let allSelectedValueIds = [];
+
+                // 3. Thêm các nút giá trị mới vào DOM và cập nhật object JS
                 checkboxes.forEach(function(checkbox) {
                     const valueName = checkbox.getAttribute('data-name');
                     const valueId = checkbox.value;
 
                     const btn = document.createElement('button');
                     btn.type = 'button';
-                    btn.classList.add('btn', 'btn-outline-secondary', 'btn-sm');
+                    btn.classList.add('btn', 'btn-outline-secondary', 'btn-sm', 'ms-2', 'mb-2');
                     btn.textContent = valueName;
                     btn.setAttribute('data-id', valueId);
                     btn.setAttribute('data-attribute-id', attributeId);
 
                     selectedValuesList.appendChild(btn);
-                    if (!selectedValueIds.includes(valueId)) {
-                        selectedValueIds.push(valueId);
-                    }
+
                     selectedAttributeValues[attributeId].push({
                         id: valueId,
                         value: valueName
                     });
                 });
 
-                hiddenValuesInput.value = selectedValueIds.join(',');
+                // 4. Cập nhật trường ẩn chứa TẤT CẢ Value ID
+                Object.values(selectedAttributeValues).forEach(valueArray => {
+                    valueArray.forEach(val => {
+                        allSelectedValueIds.push(val.id);
+                    });
+                });
+
+                hiddenValuesInput.value = [...new Set(allSelectedValueIds)].join(',');
+
+                // 5. Đóng modal
                 const modal = bootstrap.Modal.getInstance(document.getElementById('attributeValueModal'));
                 modal.hide();
-                // Không gọi generateVariants() ở đây
-            });
-
-            // Thêm class active khi bấm vào nút thuộc tính
-            document.addEventListener('click', function(e) {
-                if (e.target.classList.contains('attribute-btn')) {
-                    document.querySelectorAll('.attribute-btn').forEach(btn => btn.classList.remove(
-                        'active'));
-                    e.target.classList.add('active');
-                }
             });
 
             // Xử lý nút Tạo biến thể
-            document.getElementById('generateVariantsBtn').addEventListener('click', generateVariants);
+            document.getElementById('generateVariantsBtn').addEventListener('click', function() {
+                // Thêm validation trước khi tạo biến thể
+                if (!validateVariantGeneration()) {
+                    return;
+                }
+                document.getElementById('variantListWrapper').classList.remove('visually-hidden');
+                generateVariants();
+            });
+
+            // Hàm validation kiểm tra đã chọn thuộc tính và giá trị chưa
+            function validateVariantGeneration() {
+                const selectedAttrCount = Object.keys(selectedAttributeValues).length;
+
+                let hasValues = false;
+                for (const attrId in selectedAttributeValues) {
+                    if (selectedAttributeValues[attrId] && selectedAttributeValues[attrId].length > 0) {
+                        hasValues = true;
+                        break;
+                    }
+                }
+
+                if (selectedAttrCount === 0) {
+                    alert('Vui lòng chọn ít nhất một Thuộc tính.');
+                    return false;
+                }
+
+                if (!hasValues) {
+                    alert('Các thuộc tính đã chọn phải có ít nhất một Giá trị thuộc tính.');
+                    return false;
+                }
+
+                return true;
+            }
 
             // Hàm tạo tổ hợp biến thể
             function generateVariants() {
                 const variantList = document.getElementById('variantList');
                 variantList.innerHTML = ''; // Xóa danh sách biến thể cũ
 
-                // Lấy tất cả giá trị thuộc tính đã chọn
+                // Lấy tất cả giá trị thuộc tính đã chọn (chỉ lấy các thuộc tính có giá trị)
                 const attributeValues = Object.values(selectedAttributeValues).filter(values => values.length > 0);
+
                 if (attributeValues.length === 0) {
-                    variantList.innerHTML =
-                        '<p class="text-danger">Vui lòng chọn thuộc tính và giá trị thuộc tính để tạo biến thể .</p>';
+                    variantList.innerHTML = '<p class="text-danger">Không đủ dữ liệu để tạo biến thể.</p>';
                     return;
                 }
 
                 // Tạo tổ hợp biến thể
                 const combinations = generateCombinations(attributeValues);
+
                 if (combinations.length === 0) {
                     variantList.innerHTML = '<p>Không có biến thể nào được tạo.</p>';
                     return;
@@ -405,67 +494,66 @@
 
                 // Render bảng biến thể
                 let html = `
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>Biến thể</th>
-                        <th>Mã sản phẩm</th>
-                        <th>Giá</th>
-                        <th>Giá khuyến mãi</th>
-                        <th>Số lượng</th>
-
-                        <th>Hình ảnh</th>
-                    </tr>
-                </thead>
-                <tbody>
-        `;
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Biến thể</th>
+                                <th>Mã sản phẩm</th>
+                                <th>Giá</th>
+                                <th>Giá KM</th>
+                                <th>SL</th>
+                                <th>Hình ảnh</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
 
                 combinations.forEach((combo, index) => {
                     const variantName = combo.map(item => item.value).join(' / ');
                     const valueIds = combo.map(item => item.id).join(',');
                     html += `
-                <tr>
-                    <td>${variantName}</td>
-                     <td>
-                        <input type="text" name="variants[${index}][sku]" class="form-control" placeholder="Mã sản phẩm" required>
-                        <input type="hidden" name="variants[${index}][attribute_value_ids]" value="${valueIds}">
-                    </td>
-                    <td>
-                        <input type="number" name="variants[${index}][price]" class="form-control" placeholder="Giá" required>
-
-                    </td>
-                      <td>
-                        <input type="number" name="variants[${index}][price_sale]" class="form-control" placeholder="Giá Khuyến mãi">
-
-                    </td>
-                    <td>
-                        <input type="number" name="variants[${index}][stock]" class="form-control" placeholder="Số lượng" required>
-                    </td>
-                    <td>
-                        <input type="file" id="thumbnailInput" name="variants[${index}][image]" accept="image/*">
-                    </td>
-                </tr>
-            `;
+                        <tr>
+                            <td>${variantName}</td>
+                            <td>
+                                <input type="text" name="variants[${index}][sku]" class="form-control" placeholder="Mã sản phẩm" required pattern="[a-zA-Z0-9-]+" title="Mã SKU không chứa ký tự đặc biệt, chỉ chấp nhận chữ, số và dấu gạch ngang." >
+                                <input type="hidden" name="variants[${index}][attribute_value_ids]" value="${valueIds}">
+                            </td>
+                            <td>
+                                <input type="number" name="variants[${index}][price]" class="form-control" placeholder="Giá" required min="1">
+                            </td>
+                            <td>
+                                <input type="number" name="variants[${index}][price_sale]" class="form-control" placeholder="Giá Khuyến mãi" min="0">
+                            </td>
+                            <td>
+                                <input type="number" name="variants[${index}][stock]" class="form-control" placeholder="Số lượng" required min="1">
+                            </td>
+                            <td>
+                                <input type="file" name="variants[${index}][image]" accept="image/*">
+                            </td>
+                        </tr>
+                    `;
                 });
 
                 html += '</tbody></table>';
                 variantList.innerHTML = html;
             }
 
-            // Hàm tạo tổ hợp từ danh sách giá trị thuộc tính
+            // Hàm tạo tổ hợp từ danh sách giá trị thuộc tính (Cartesian Product)
             function generateCombinations(arrays) {
                 if (arrays.length === 0) return [];
-                return arrays.reduce((acc, curr) => {
+
+                const firstArray = arrays[0].map(item => [item]);
+                const remainingArrays = arrays.slice(1);
+
+                return remainingArrays.reduce((acc, curr) => {
                     const result = [];
                     acc.forEach(a => {
                         curr.forEach(c => {
-                            result.push([...(Array.isArray(a) ? a : [a]), c]);
+                            result.push([...a, c]);
                         });
                     });
                     return result;
-                }, [
-                    []
-                ]);
+                }, firstArray);
             }
         });
     </script>
@@ -473,7 +561,6 @@
 @section('content')
     <div class="content-page">
         <div class="content">
-            <!-- Start Content-->
             <div class="container-xxl">
                 <div class="py-3 d-flex align-items-sm-center flex-sm-row flex-column">
                     <div class="flex-grow-1">
@@ -481,7 +568,7 @@
                     </div>
                 </div>
                 <div class="row">
-                    @include('component.alert')
+                    {{-- @include('component.alert') --}}
                     <div class="col-12">
                         <div class="card">
 
@@ -490,13 +577,17 @@
                                     <form action="{{ route('admin.products.store') }}" method="POST"
                                         enctype="multipart/form-data">
                                         @csrf
+
+                                        {{-- TRƯỜNG ẨN CHO LOẠI SẢN PHẨM BIẾN THỂ (type_product = 1) --}}
+                                        <input type="hidden" name="type_product" value="1">
+
                                         <div class="col-sm-12 row">
                                             <div class="col-sm-6">
                                                 <div class="mb-3">
                                                     <label for="name_cate" class="form-label">Tên sản phẩm</label>
                                                     <input type="text" name="name" id="name_cate"
                                                         class="form-control @error('name_cate') is-invalid @enderror"
-                                                        value="{{ old('name') }}">
+                                                        value="{{ old('name') }}" required>
                                                     @error('name')
                                                         <div class="invalid-feedback">{{ $message }}</div>
                                                     @enderror
@@ -506,51 +597,21 @@
                                                     <label for="decription_short" class="form-label">Mô tả ngắn</label>
                                                     <input type="text" name="decription_short" id="decription_short"
                                                         class="form-control @error('decription_short') is-invalid @enderror"
-                                                        value="{{ old('decription_short') }}">
+                                                        value="{{ old('decription_short') }}" required>
                                                     @error('decription_short')
                                                         <div class="invalid-feedback">{{ $message }}</div>
                                                     @enderror
                                                 </div>
                                                 <div class="mb-3">
                                                     <label class="form-label">Mô tả dài</label>
-                                                    {{-- THÊM ID: "descriptionEditor" --}}
                                                     <textarea name="description" id="descriptionEditor" class="form-control @error('description') is-invalid @enderror">{{ old('description') }}</textarea>
                                                     @error('description')
                                                         <div class="invalid-feedback">{{ $message }}</div>
                                                     @enderror
                                                 </div>
-                                                <!-- Nút chọn thuộc tính -->
-                                                <div class="varriant mb-3">
-                                                    <button type="button" class="btn btn-sm btn-primary"
-                                                        data-bs-toggle="modal" data-bs-target="#attributeModal">
-                                                        Chọn thuộc tính
-                                                    </button>
-                                                    <div class="mt-3">
-                                                        <strong>Chọn giá trị thuộc tính :</strong>
-                                                        <div id="selectedAttributes" class="d-flex gap-2 flex-wrap mt-2">
-                                                            <!-- Nút thuộc tính sẽ được tạo động ở đây -->
-                                                        </div>
-                                                    </div>
-                                                    <div class="mt-3">
-                                                        <strong>Các giá trị thuộc tính đã chọn:</strong>
-                                                        <div id="selectedAttributesValues"
-                                                            class="d-flex gap-2 flex-wrap mt-2">
-                                                            <!-- Nút giá trị thuộc tính sẽ được tạo động ở đây -->
-                                                        </div>
-                                                    </div>
-                                                    <!-- Nút tạo biến thể -->
-                                                    <div class="mt-3">
-                                                        <button type="button" class="btn btn-sm btn-success"
-                                                            id="generateVariantsBtn">Tạo biến thể</button>
-                                                    </div>
-                                                    <!-- Khu vực hiển thị biến thể -->
-                                                    <div class="mt-3">
-                                                        <strong>Danh sách biến thể sản phẩm:</strong>
-                                                        <div id="variantList" class="mt-2">
-                                                            <!-- Danh sách biến thể sẽ được render động ở đây -->
-                                                        </div>
-                                                    </div>
-                                                </div>
+
+
+
                                                 <div class="mb-3">
                                                     <label class="form-label d-block">Hiển thị lên trang chủ không</label>
                                                     <div class="form-check form-check-inline">
@@ -568,11 +629,10 @@
                                                 </div>
                                             </div>
                                             <div class="col-sm-6">
-                                                {{-- Giả định biến $categories được truyền từ view --}}
                                                 <div class="mb-3">
                                                     <label for="category_id" class="form-label">Danh mục sản phẩm</label>
                                                     <select name="category_id" id="category_id"
-                                                        class="form-select @error('category_id') is-invalid @enderror">
+                                                        class="form-select @error('category_id') is-invalid @enderror" required>
                                                         <option value="">-- Chọn danh mục --</option>
                                                         @foreach ($categories as $category)
                                                             <option value="{{ $category->id }}"
@@ -587,16 +647,14 @@
                                                 </div>
 
                                                 {{-- THUMBNAIL INPUT --}}
-                                                <div class="col-sm-6">
-                                                    {{-- THUMBNAIL INPUT --}}
+                                                <div class="col-sm-12">
                                                     <div class="mt-3">
                                                         <label>Ảnh sản phẩm chính:</label><br>
                                                         <input type="file" name="thumbnail" id="thumbnailInput"
                                                             accept="image/*"
-                                                            class="form-control @error('thumbnail') is-invalid @enderror">
+                                                            class="form-control @error('thumbnail') is-invalid @enderror" required>
 
                                                         {{-- **TRƯỜNG ẨN LƯU PATH CŨ** --}}
-                                                        {{-- Lấy đường dẫn đã flash từ Controller: Session::get('thumbnail_path') hoặc old('thumbnail_path') --}}
                                                         <input type="hidden" name="old_thumbnail_path"
                                                             id="oldThumbnailPath"
                                                             value="{{ Session::get('thumbnail_path') ?? old('thumbnail_path') }}">
@@ -616,7 +674,6 @@
 
                                                         {{-- **TRƯỜNG ẨN LƯU MẢNG PATH CŨ (JSON ENCODED)** --}}
                                                         @php
-                                                            // Ưu tiên lấy từ Session flash data (nếu có), nếu không lấy old(), mặc định là mảng rỗng
                                                             $oldImagesPathData =
                                                                 Session::get('images_path') ?? old('images_path');
                                                             $oldImages = is_array($oldImagesPathData)
@@ -626,114 +683,114 @@
                                                         <input type="hidden" name="old_images_path" id="oldImagesPath"
                                                             value="{{ $oldImages }}">
 
-                                                        <div id="imagePreviewContainer"
-                                                            style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
-                                                        </div>
+                                                        <div id="imagePreviewContainer" style="margin-top: 10px;"></div>
                                                         @error('images.*')
-                                                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                                                            <div class="invalid-feedback d-block">Lỗi album ảnh.</div>
                                                         @enderror
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
+                                          {{-- KHỐI SẢN PHẨM BIẾN THỂ (VARRIANT) LUÔN HIỂN THỊ --}}
+                                                <div class="varriant mb-3">
+                                                    {{-- Nút chọn thuộc tính --}}
+                                                    <button type="button" class="btn btn-sm btn-primary"
+                                                        data-bs-toggle="modal" data-bs-target="#attributeModal">
+                                                        Chọn thuộc tính
+                                                    </button>
 
-                                        <button type="submit" class="btn btn-success">Thêm sản phảm</button>
-                                        <a href="{{ route('admin.categories.list-cate') }}"
-                                            class="btn btn-secondary">Quay
-                                            lại</a>
+                                                    {{-- KHỐI ẨN 1: Thuộc tính đã chọn --}}
+                                                    <div class="mt-3 visually-hidden" id="selectedAttributesWrapper">
+                                                        <strong>Thuộc tính đã chọn:</strong>
+                                                        <div id="selectedAttributes" class="d-flex gap-2 flex-wrap mt-2">
+                                                        </div>
+                                                    </div>
+
+                                                    {{-- KHỐI ẨN 2: Giá trị thuộc tính đã chọn --}}
+                                                    <div class="mt-3 visually-hidden" id="selectedAttributesValuesWrapper">
+                                                        <strong>Các giá trị thuộc tính đã chọn:</strong>
+                                                        <div id="selectedAttributesValues"
+                                                            class="d-flex gap-2 flex-wrap mt-2">
+                                                            <input type="hidden" name="selected_attribute_values_ids"
+                                                                id="selected_attribute_values_ids">
+                                                            <input type="hidden" name="selected_attribute_ids"
+                                                                id="selected_attribute_ids">
+                                                        </div>
+                                                    </div>
+
+                                                    {{-- KHỐI ẨN 3: Nút tạo biến thể --}}
+                                                    <div class="mt-3 visually-hidden" id="generateVariantsBtnWrapper">
+                                                        <button type="button" class="btn btn-sm btn-success"
+                                                            id="generateVariantsBtn">Tạo biến thể</button>
+                                                    </div>
+
+                                                    {{-- KHỐI ẨN 4: Khu vực hiển thị biến thể --}}
+                                                    <div class="mt-3 visually-hidden" id="variantListWrapper">
+                                                        <strong>Danh sách biến thể sản phẩm:</strong>
+                                                        <div id="variantList" class="mt-2">
+                                                            {{-- Danh sách biến thể sẽ được render động ở đây --}}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                        <div class="mt-3">
+                                            <button type="submit" class="btn btn-primary">Thêm sản phẩm</button>
+                                        </div>
                                     </form>
-
-                                    <!-- Modal chọn thuộc tính -->
-                                    <div class="modal fade" id="attributeModal" tabindex="-1"
-                                        aria-labelledby="attributeModalLabel" aria-hidden="true">
-                                        <div class="modal-dialog">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title">Chọn thuộc tính</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                                        aria-label="Đóng"></button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <form id="attributeForm">
-                                                        @foreach ($attributes as $attribute)
-                                                            <div class="form-check">
-                                                                <input class="form-check-input attribute-checkbox"
-                                                                    type="checkbox" value="{{ $attribute->id }}"
-                                                                    id="attribute_{{ $attribute->id }}"
-                                                                    data-name="{{ $attribute->name }}">
-                                                                <label class="form-check-label"
-                                                                    for="attribute_{{ $attribute->id }}">
-                                                                    {{ $attribute->name }}
-                                                                </label>
-                                                            </div>
-                                                        @endforeach
-                                                    </form>
-                                                </div>
-                                                <div class="modal-footer">
-
-                                                    <button type="button" class="btn btn-primary" id="saveAttributes"
-                                                        data-bs-dismiss="modal">Lưu</button>
-                                                </div>
-
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <!-- Modal chọn giá trị thuộc tính -->
-                                    <!-- Modal chọn giá trị thuộc tính -->
-                                    <div class="modal fade" id="attributeValueModal" tabindex="-1"
-                                        aria-labelledby="attributeValueModalLabel" aria-hidden="true">
-                                        <div class="modal-dialog">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title" id="attributeValueModalLabel">Chọn giá trị
-                                                        thuộc tính</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                                        aria-label="Đóng"></button>
-                                                </div>
-                                                <div class="modal-body" id="attributeValuesContent">
-                                                    <!-- Danh sách giá trị thuộc tính sẽ được thêm động vào đây -->
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary"
-                                                        data-bs-dismiss="modal">Đóng</button>
-                                                    <button type="button" class="btn btn-primary"
-                                                        id="saveAttributeValues">Lưu</button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Input ẩn để lưu ID giá trị thuộc tính -->
-                                    <input type="hidden" id="selected_attribute_values_ids"
-                                        name="selected_attribute_values_ids">
-
-                                    <!-- Input ẩn để lưu ID giá trị thuộc tính -->
-                                    <input type="hidden" id="selected_attribute_values_ids"
-                                        name="selected_attribute_values_ids">
                                 </div>
                             </div>
-
                         </div>
                     </div>
                 </div>
-
-            </div> <!-- container-fluid -->
-        </div> <!-- content -->
-        <!-- Footer Start -->
-        <footer class="footer">
-            <div class="container-fluid">
-                <div class="row">
-                    <div class="col fs-13 text-muted text-center">
-                        &copy;
-                        <script>
-                            document.write(new Date().getFullYear())
-                        </script> - Made with <span class="mdi mdi-heart text-danger"></span> by <a
-                            href="#!" class="text-reset fw-semibold">Zoyothemes</a>
-                    </div>
+            </div>
+        </div>
+    </div>
+    {{-- Modal Chọn Thuộc tính --}}
+    <div class="modal fade" id="attributeModal" tabindex="-1" aria-labelledby="attributeModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="attributeModalLabel">Chọn Thuộc tính Sản phẩm</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    {{-- Giả định $attributes là mảng các thuộc tính (id, name,...) --}}
+                    @foreach ($attributes as $attribute)
+                        <div class="form-check">
+                            <input class="form-check-input attribute-checkbox" type="checkbox"
+                                value="{{ $attribute->id }}" data-name="{{ $attribute->name }}"
+                                id="attribute_{{ $attribute->id }}">
+                            <label class="form-check-label" for="attribute_{{ $attribute->id }}">
+                                {{ $attribute->name }}
+                            </label>
+                        </div>
+                    @endforeach
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn btn-primary" id="saveAttributes"
+                        data-bs-dismiss="modal">Lưu</button>
                 </div>
             </div>
-        </footer>
-        <!-- end Footer -->
+        </div>
+    </div>
 
+    {{-- Modal Chọn Giá trị Thuộc tính --}}
+    <div class="modal fade" id="attributeValueModal" tabindex="-1" aria-labelledby="attributeValueModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="attributeValueModalLabel">Giá trị của [Tên Thuộc tính]</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="attributeValuesContent">
+                    </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn btn-primary" id="saveAttributeValues">Lưu Giá trị</button>
+                </div>
+            </div>
+        </div>
     </div>
 @endsection
