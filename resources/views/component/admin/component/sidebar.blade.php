@@ -48,31 +48,16 @@
                             <li>
                                 <a href="#sidebarAuth" data-bs-toggle="collapse">
                                     <i data-feather="users"></i>
-                                    <span> Authentication </span>
+                                    <span> Authorization </span>
                                     <span class="menu-arrow"></span>
                                 </a>
                                 <div class="collapse" id="sidebarAuth">
                                     <ul class="nav-second-level">
                                         <li>
-                                            <a class='tp-link' href='auth-login.html'>Log In</a>
+                                            <a class='tp-link' href='{{ route('admin.setRoles.index') }}'>List Roles</a>
+                                              <li>
+                                            <a class='tp-link' href='{{ route('admin.authen') }}'>List User</a>
                                         </li>
-                                        <li>
-                                            <a class='tp-link' href='auth-register.html'>Register</a>
-                                        </li>
-                                        <li>
-                                            <a class='tp-link' href='auth-recoverpw.html'>Recover Password</a>
-                                        </li>
-                                        <li>
-                                            <a class='tp-link' href='auth-lock-screen.html'>Lock Screen</a>
-                                        </li>
-                                        <li>
-                                            <a class='tp-link' href='auth-confirm-mail.html'>Confirm Mail</a>
-                                        </li>
-                                        <li>
-                                            <a class='tp-link' href='email-verification.html'>Email Verification</a>
-                                        </li>
-                                        <li>
-                                            <a class='tp-link' href='auth-logout.html'>Logout</a>
                                         </li>
                                     </ul>
                                 </div>

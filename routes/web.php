@@ -39,10 +39,12 @@ Route::post('/find-variant', [App\Http\Controllers\Client\ProductClientControlle
 
 Route::post('/renderVariant', [App\Http\Controllers\Client\ProductClientController::class, 'variant'])->name('renderVarianrt');
 
-Route::prefix('admin')->as('admin.')->middleware('auth')->group(function () {
+Route::prefix('admin')->as('admin.')->middleware(['auth', 'admin'])->group(function () {
 
-    Route::get('/t', [App\Http\Controllers\Admin\ProductController::class, 'test'])->name('test');
-    Route::post('/test', [App\Http\Controllers\Admin\ProductController::class, 'createPost'])->name('testpost');
+    Route::resource('setRoles', App\Http\Controllers\Admin\RolesController::class);
+
+    Route::get('/authen', [App\Http\Controllers\Admin\RolesController::class, 'authen'])->name('authen');
+     Route::put('/setRoles', [App\Http\Controllers\Admin\RolesController::class, 'setRoles'])->name('setRoles');
     //danhmuc
     Route::prefix('categories')->as('categories.')->group(function () {
         Route::get('/', [App\Http\Controllers\Admin\CategoryController::class, 'index'])->name('list-cate');

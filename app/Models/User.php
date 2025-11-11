@@ -65,7 +65,11 @@ class User extends Authenticatable
         ];
     }
     public function shippingAddresses()
-{
-    return $this->hasMany(ShippingAddress::class);
-}
+    {
+        return $this->hasMany(ShippingAddress::class);
+    }
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
+    }
 }
