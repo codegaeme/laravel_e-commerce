@@ -1,44 +1,89 @@
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+@extends('component.admin.layout.masterlayoutadmin')
+@section('title')
+    Add Categories
+@endsection
+@section('css')
+@endsection
+@section('js')
+@endsection
+@section('content')
+    <div class="content-page">
+        <div class="content">
 
-<div class="container py-4">
-    <h2 class="mb-4">Sửa danh mục sản phẩm</h2>
+            <!-- Start Content-->
+            <div class="container-xxl">
 
-    <form action="{{ route('admin.categories.update-cate', $category->id) }}" method="POST">
-        @csrf
-        @method('PUT') <!-- Dùng method PUT cho update -->
+                <div class="py-3 d-flex align-items-sm-center flex-sm-row flex-column">
+                    <div class="flex-grow-1">
+                        <h4 class="fs-18 fw-semibold m-0">Thêm danh mục sản phẩm</h4>
+                    </div>
+                </div>
 
-        <div class="mb-3">
-            <label for="name_cate" class="form-label">Tên danh mục</label>
-            <input type="text" name="name_cate" id="name_cate"
-                class="form-control @error('name_cate') is-invalid @enderror"
-                value="{{ old('name_cate', $category->name_cate) }}" required>
-            @error('name_cate')
-                <div class="invalid-feedback">{{ $message }}</div>
-            @enderror
-        </div>
+                <div class="row">
+                    <div class="card">
+                        <div class="container py-4">
 
-        <div class="mb-3">
-            <label for="description" class="form-label">Mô tả</label>
-            <textarea name="description" id="description" class="form-control">{{ old('description', $category->description) }}</textarea>
-        </div>
 
-        <div class="mb-3">
-            <label class="form-label d-block">Trạng thái</label>
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="status" id="status_show" value="1"
-                    {{ old('status', $category->status) == '1' ? 'checked' : '' }}>
-                <label class="form-check-label" for="status_show">Hiển thị</label>
+                            <form action="{{ route('admin.categories.update-cate', $category->id) }}" method="POST">
+                                @csrf
+                                @method('PUT') <!-- Dùng method PUT cho update -->
+
+                                <div class="mb-3">
+                                    <label for="name_cate" class="form-label">Tên danh mục</label>
+                                    <input type="text" name="name_cate" id="name_cate"
+                                        class="form-control @error('name_cate') is-invalid @enderror"
+                                        value="{{ old('name_cate', $category->name_cate) }}" required>
+                                    @error('name_cate')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="description" class="form-label">Mô tả</label>
+                                    <textarea name="description" id="description" class="form-control">{{ old('description', $category->description) }}</textarea>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label d-block">Trạng thái</label>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="status" id="status_show"
+                                            value="1" {{ old('status', $category->status) == '1' ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="status_show">Hiển thị</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="status" id="status_hide"
+                                            value="0" {{ old('status', $category->status) == '0' ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="status_hide">Ẩn</label>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn btn-success">Lưu danh mục</button>
+                                <a href="{{ route('admin.categories.list-cate') }}" class="btn btn-secondary">Quay lại</a>
+                            </form>
+
+                        </div>
+                    </div>
+
+                </div>
+
+            </div> <!-- container-fluid -->
+        </div> <!-- content -->
+
+        <!-- Footer Start -->
+        <footer class="footer">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col fs-13 text-muted text-center">
+                        &copy;
+                        <script>
+                            document.write(new Date().getFullYear())
+                        </script> - Made with <span class="mdi mdi-heart text-danger"></span> by <a
+                            href="#!" class="text-reset fw-semibold">Zoyothemes</a>
+                    </div>
+                </div>
             </div>
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="status" id="status_hide" value="0"
-                    {{ old('status', $category->status) == '0' ? 'checked' : '' }}>
-                <label class="form-check-label" for="status_hide">Ẩn</label>
-            </div>
-        </div>
+        </footer>
+        <!-- end Footer -->
 
-        <button type="submit" class="btn btn-success">Lưu danh mục</button>
-        <a href="{{ route('admin.categories.list-cate') }}" class="btn btn-secondary">Quay lại</a>
-    </form>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-</div>
+    </div>
+@endsection

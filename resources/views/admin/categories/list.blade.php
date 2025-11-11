@@ -83,8 +83,9 @@
                             <div class="card-body">
                                 <table id="fixed-columns-datatable"
                                     class="table table-striped nowrap row-border order-column w-100">
-                                    <thead class="text-center">
+                                    <thead>
                                         <tr>
+                                            <th>STT</th>
                                             <th>Tên</th>
                                             <th>Slug</th>
                                             <th>Mô tả</th>
@@ -92,19 +93,20 @@
                                             <th>Thao tác</th>
                                         </tr>
                                     </thead>
-                                    <tbody class="text-center">
-                                        @foreach ($categories as $cate)
+                                    <tbody >
+                                        @foreach ($categories as $key =>$cate)
                                             <tr>
+                                                <td >{{ $key+1 }}</td>
                                                 <td>{{ $cate->name_cate }}</td>
                                                 <td>{{ $cate->slug }}</td>
                                                 <td>{{ $cate->description ? $cate->description : 'Không có mô tả' }}
                                                 </td>
-                                                <td class="text-center align-middle">
+                                                <td class=" align-middle">
                                                     <span class="badge {{ $cate->status ? 'bg-success' : 'bg-danger' }}">
                                                         {{ $cate->status ? 'Hiển thị' : 'Ẩn' }}
                                                     </span>
                                                 </td>
-                                                <td class="text-center align-middle">
+                                                <td class=" align-middle">
                                                     <a href="{{ route('admin.categories.edit-cate', $cate->id) }}"
                                                         class="icon-action text-success" title="Sửa">
                                                         <i data-feather="edit"></i>

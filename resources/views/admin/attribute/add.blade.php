@@ -1,6 +1,6 @@
 @extends('component.admin.layout.masterlayoutadmin')
 @section('title')
-    Add Attributes
+    {{ $title }}
 @endsection
 @section('css')
 @endsection
@@ -9,44 +9,45 @@
 @section('content')
     <div class="content-page">
         <div class="content">
+
             <!-- Start Content-->
             <div class="container-xxl">
+
                 <div class="py-3 d-flex align-items-sm-center flex-sm-row flex-column">
                     <div class="flex-grow-1">
-                        <h4 class="fs-18 fw-semibold m-0">Thêm mới Thuộc tính</h4>
+                        <h4 class="fs-18 fw-semibold m-0">{{ $title }}</h4>
                     </div>
                 </div>
+
                 <div class="row">
-                    @include('component.alert')
-                    <div class="col-12">
-                        <div class="card">
+                    <div class="card">
+                        <div class="container py-4">
 
 
-                            <form action="{{ route('admin.products.variants.attributes.update',$att->id) }}" method="POST" class="p-5">
+                            <form action="{{ route('admin.attributes.store') }}" method="post" id="formNotEmpty">
                                 @csrf
-                                @method('PUT')
-                                <div class="mb-3">
-                                    <label for="name" class="form-label">Tên Thuộc tính</label>
-                                    <input type="text" name="name" id="name"
-                                        class="form-control @error('name') is-invalid @enderror"
-                                        value="{{ old('name',$att->name) }}">
+                                <div class=" p-3">
+                                    <label for="inputAddCate">Tên thuộc tính :</label>
+                                    <input type="text" id="inputNotEmpty" name="name"
+                                        placeholder="Nhập tên thuộc tính ...." class="form-control mt-3"
+                                        value="{{ old('name') }}">
                                     @error('name')
-                                        <div class="invalid-feedback">{{ $message }}</div>
+                                        <span class="text-danger">{{ $message }}</span>
                                     @enderror
                                 </div>
-
-
-
-
-                                <button type="submit" class="btn btn-success">Lưu thuộc tính</button>
-
+                                <div class="p-3">
+                                    <button type="submit" id="btnSubmit" class="btn btn-sm btn-primary">Thêm mới</button>
+                                </div>
                             </form>
+
                         </div>
                     </div>
+
                 </div>
 
             </div> <!-- container-fluid -->
         </div> <!-- content -->
+
         <!-- Footer Start -->
         <footer class="footer">
             <div class="container-fluid">

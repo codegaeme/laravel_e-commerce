@@ -18,12 +18,12 @@ Route::middleware([
     })->name('dashboard');
 });
 
-Route::get('/my-order-detail/{id}',[App\Http\Controllers\Client\OrderController::class, 'myOrderDetail'])->name('myOrderDetail')->middleware('auth');
-Route::get('/my-order',[App\Http\Controllers\Client\OrderController::class, 'myOrder'])->name('myOrder')->middleware('auth');
+Route::get('/my-order-detail/{id}', [App\Http\Controllers\Client\OrderController::class, 'myOrderDetail'])->name('myOrderDetail')->middleware('auth');
+Route::get('/my-order', [App\Http\Controllers\Client\OrderController::class, 'myOrder'])->name('myOrder')->middleware('auth');
 
 Route::post('/checkout-post', [App\Http\Controllers\Client\CheckoutController::class, 'checkoutPost'])->name('checkoutPost');
 
-Route::get('/success',[App\Http\Controllers\Client\CheckoutController::class, 'success'])->name('success')->middleware('auth');
+Route::get('/success', [App\Http\Controllers\Client\CheckoutController::class, 'success'])->name('success')->middleware('auth');
 Route::post('/shippingaddressPost', [App\Http\Controllers\Client\CheckoutController::class, 'spadPost'])->name('shippingAdddressPost')->middleware('auth');
 Route::get('/shippingaddress', [App\Http\Controllers\Client\CheckoutController::class, 'spad'])->name('shippingAdddress');
 Route::post('/checkout', [App\Http\Controllers\Client\CheckoutController::class, 'checkout'])->name('checkout');
@@ -64,20 +64,19 @@ Route::prefix('admin')->as('admin.')->group(function () {
             Route::put('/update/{id}', [App\Http\Controllers\Admin\ProductController::class, 'update'])->name('update');
             Route::delete('/delete', [App\Http\Controllers\Admin\ProductController::class, 'delete'])->name('delete');
         });
+    });
 
-        // variants
-        Route::prefix('variants')->as('variants.')->group(function () {
-            Route::prefix('attributes')->as('attributes.')->group(function () {
-                Route::get('', [App\Http\Controllers\Admin\ProductAttributeController::class, 'index'])->name('index');
-                Route::get('create', [App\Http\Controllers\Admin\ProductAttributeController::class, 'create'])->name('add');
-                Route::post('store', [App\Http\Controllers\Admin\ProductAttributeController::class, 'store'])->name('store');
-                Route::get('value/store/{id}', [App\Http\Controllers\Admin\ProductAttributeController::class, 'addValue'])->name('value.store');
-                Route::post('value/add', [App\Http\Controllers\Admin\ProductAttributeController::class, 'add'])->name('value.add');
-                Route::delete('/delete', [App\Http\Controllers\Admin\ProductAttributeController::class, 'delete'])->name('delete');
-                Route::put('/update/{id}', [App\Http\Controllers\Admin\ProductAttributeController::class, 'update'])->name('update');
-                Route::get('/edit/{id}', [App\Http\Controllers\Admin\ProductAttributeController::class, 'edit'])->name('edit');
-            });
-        });
+    // thuọc tính
+    Route::resource('attributes', App\Http\Controllers\Admin\ProductAttributeController::class);
+
+    //giá trị thuộc tính
+    Route::prefix('attributeValues')->as('attributeValues.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\AttributeValueController::class, 'index'])->name('index');        // Danh sách sản phẩm
+        Route::get('/createSimple/{id}', [App\Http\Controllers\Admin\AttributeValueController::class, 'create'])->name('createSimple'); // Form thêm mới
+        Route::post('/store', [App\Http\Controllers\Admin\AttributeValueController::class, 'store'])->name('store');   // Xử lý lưu sản phẩm
+        Route::get('/edit/{id}/{attribute_id}', [App\Http\Controllers\Admin\AttributeValueController::class, 'edit'])->name('edit');  // Form chỉnh sửa
+        Route::put('/update/{id}', [App\Http\Controllers\Admin\AttributeValueController::class, 'update'])->name('update'); // Cập nhật sản phẩm
+        Route::delete('/delete/{id}', [App\Http\Controllers\Admin\AttributeValueController::class, 'destroy'])->name('destroy'); // Xóa
     });
     Route::get('/dh', function () {
         return view('admin.dashboard');

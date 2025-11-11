@@ -9,98 +9,108 @@ use Illuminate\Http\Request;
 
 class ProductAttributeController extends Controller
 {
-        public function index(){
+    public function index(Request $request)
+    {
+        $keyword = $request->keyword;
+        $title = "Danh sách thuộc tinh";
+        $listAtt = ProductAttribute::query()->when($keyword, function ($q) use ($keyword) {
+            $q->where(function ($query) use ($keyword) {
+                $query->where('name', 'like', "%{$keyword}%");
+            });
+        })
+            ->orderBy('created_at', 'desc')
+            ->paginate(10)
+            ->appends($request->all());;
 
-
-          $data = ProductAttribute::with(['values'])
-        ->orderBy('created_at', 'desc')
-        ->paginate(10);
-
-        return view('admin.products.variants.attribute.list',compact('data'));
+        return view('admin.attribute.list', compact('listAtt', 'title'));
     }
-    public function create(){
-        return view('admin.products.variants.attribute.add');
+    public function create()
+    {
+        $title = "Thêm mới thuộc tính";
+        return view('admin.attribute.add', compact('title'));
     }
-      public function store(Request $request){
+    public function store(Request $request)
+    {
+        $request->validate(
+            [
+                'name'  => 'required|string|min:1|max:255|unique:product_attributes,name'
+            ],
+            [
+                'name.required' => 'Tên  thuộc tính không được để trống',
+                'name.unique'   => 'Tên thuộc tính đã tồn tại',
+                'name.max'      => 'Tên  thuộc tính tối đa 255 ký tự',
+            ]
+        );
+
         $data = [
-            'name'=> request()->input('name'),
+            'name' => request()->input('name'),
         ];
         $newAttribute = ProductAttribute::create($data);
         if ($newAttribute) {
-             return redirect()->route('admin.products.variants.attributes.index')->with('success','Thêm thành công');
-        }
-        else{
-              return redirect()->route('admin.products.variants.attributes.index')->with('error','Thêm thất bại');
-        }
-
-    }
-    public function addValue($id){
-        return view('admin.products.variants.attribute.detail',compact('id'));
-    }
-    public function add(Request $request ){
-
-         $data = [
-            'value'=> request()->input('value'),
-            'attribute_id'=>request()->input('attribute_id')
-        ];
-        $newAttribute = ProductAttributeValue::create($data);
-        if ($newAttribute) {
-             return redirect()->route('admin.products.variants.attributes.index')->with('success','Thêm thành công');
-        }
-        else{
-              return redirect()->route('admin.products.variants.attributes.index')->with('error','Thêm thất bại');
-        }
-    }
-    public function delete(Request $request){
-        $id = $request->id;
-        $category = ProductAttribute::find($id);
-
-        if (!$category) {
-            return redirect()->back()->with('error', 'Thuộc tính này không tồn tại.');
-        }
-
-        // Kiểm tra xem còn sản phẩm nào đang dùng danh mục này không
-        $productCount = ProductAttributeValue::where('attribute_id',$id)->count();
-
-        if ($productCount > 0) {
-            return redirect()->back()->with('warning', 'Thuộc tính này đang có giá trị, không thể xóa.');
-        }
-
-
-        $category->delete();
-
-        return redirect()->back()->with('success', 'Xóa thuộc tính thành công.');
-    }
-    public function edit($id){
-        $att=ProductAttribute::find($id);
-         if (!$att) {
-            return redirect()->back()->with('error', 'Thuộc tính này không tồn tại.');
-        }
-        return view('admin.products.variants.attribute.edit',compact('att'));
-    }
-      public function update(Request $request, $id){
-        //  $request->validate([
-        //     'name_cate' => [
-        //         'required',
-        //         'string',
-        //         'max:255',
-        //         Rule::unique('categories', 'name_cate')->ignore($id),
-        //     ],
-        // ], [
-        //     'name_cate.required' => 'Vui lòng nhập tên danh mục.',
-        //     'name_cate.unique'   => 'Tên danh mục đã tồn tại.',
-        //     'name_cate.max'      => 'Tên danh mục không được vượt quá 255 ký tự.',
-        // ]);
-        $category = ProductAttribute::find($id);
-        if ($category) {
-            $data = [
-                'name' => request()->input('name'),
-            ];
-          
-            $category->update($data);
-            return redirect()->route('admin.products.variants.attributes.index')->with('success', 'Sửa thành công');
+            return redirect()->route('admin.attributes.index')->with('success', 'Thêm thành công');
         } else {
-            return redirect()->back()->with('error', 'Không tồn tại');
+            return redirect()->route('admin.attributes.index')->with('error', 'Thêm thất bại');
         }
+    }
+    public function show(string $id, Request $request)
+    {
+        $keyword = $request->keyword;
+        $title = "Danh sách giá trị thuộc tính";
+        $att = ProductAttribute::findOrFail($id);
+
+        $listAttValue = ProductAttributeValue::where('attribute_id', $att->id)
+            ->when($keyword, function ($query) use ($keyword) {
+                $query->where('value', 'like', "%{$keyword}%");
+            })
+            ->orderBy('id', 'desc')
+            ->paginate(10);
+
+        return view('admin.attribute.show', compact('att', 'title', 'listAttValue'));
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(string $id)
+    {
+        $title = "Sửa thuộc tính";
+        $att = ProductAttribute::findOrFail($id);
+
+        return view('admin.attribute.edit', compact('att', 'title'));
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, string $id)
+    {
+        $request->validate(
+            [
+                'name'  => 'required|string|min:1|max:255|unique:product_attributes,name,' . $id,
+            ],
+            [
+                'name.required' => 'Tên thuộc tính không được để trống',
+                'name.unique'   => 'Tên thuộc tính đã tồn tại',
+                'name.max'      => 'Tên thuộc tính tối đa 255 ký tự',
+            ]
+        );
+
+        $att = ProductAttribute::findOrFail($id);
+        $att->update([
+            'name' => $request->name,
+
+
+        ]);
+        return redirect()->route('admin.attributes.index')->with('success', 'Sửa thuộc tính thành công!');
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(string $id)
+    {
+        $att = ProductAttribute::findOrFail($id);
+        $att->delete();
+        return redirect()->route('admin.attributes.index')->with('success', 'Xóa thuộc tính thành công!');
     }
 }

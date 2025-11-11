@@ -180,7 +180,7 @@
                                             <a class='tp-link' href='{{route('admin.products.simple.list')}}'>List Products</a>
                                         </li>
                                         <li>
-                                            <a class='tp-link' href='{{route('admin.products.variants.attributes.index')}}'>List Attributes</a>
+                                            <a class='tp-link' href='{{route('admin.attributes.index')}}'>List Attributes</a>
                                         </li>
 
                                     </ul>
