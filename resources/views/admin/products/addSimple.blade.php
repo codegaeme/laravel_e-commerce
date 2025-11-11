@@ -44,12 +44,22 @@
             width: 150px;
             height: 150px;
         }
-
     </style>
 @endsection
 
 @section('js')
+    <script src="https://cdn.ckeditor.com/ckeditor5/41.0.0/classic/ckeditor.js"></script>
     <script>
+        window.addEventListener("load", function() {
+            // ... Logic khởi tạo ảnh cũ/album hiện tại ...
+
+            // Khởi tạo CKEditor cho textarea có ID là 'descriptionEditor'
+            ClassicEditor
+                .create(document.querySelector('#descriptionEditor'))
+                .catch(error => {
+                    console.error(error);
+                });
+        });
         const thumbnailInput = document.getElementById('thumbnailInput');
         const thumbnailWrapper = document.getElementById('thumbnailPreviewWrapper');
         const oldThumbnailPathInput = document.getElementById('oldThumbnailPath');
@@ -232,7 +242,7 @@
                             <div class="card-body" id="cardSimple">
                                 <div class="container py-4">
                                     {{-- Đảm bảo action là route testpost --}}
-                                    <form action="{{ route('admin.testpost') }}" method="POST"
+                                    <form action="{{ route('admin.products.store') }}" method="POST"
                                         enctype="multipart/form-data">
                                         @csrf
                                         <div class="col-sm-12 row">
@@ -289,7 +299,8 @@
 
                                                 <div class="mb-3">
                                                     <label class="form-label">Mô tả dài</label>
-                                                    <textarea name="description" class="form-control @error('description') is-invalid @enderror">{{ old('description') }}</textarea>
+                                                    {{-- THÊM ID: "descriptionEditor" --}}
+                                                    <textarea name="description" id="descriptionEditor" class="form-control @error('description') is-invalid @enderror">{{ old('description') }}</textarea>
                                                     @error('description')
                                                         <div class="invalid-feedback">{{ $message }}</div>
                                                     @enderror
@@ -317,17 +328,16 @@
                                             <div class="col-sm-6">
                                                 {{-- Giả định biến $categories được truyền từ view --}}
                                                 <div class="mb-3">
-                                                    <label class="form-label">Danh mục sản phẩm</label>
-                                                    <select name="category_id"
+                                                    <label for="category_id" class="form-label">Danh mục sản phẩm</label>
+                                                    <select name="category_id" id="category_id"
                                                         class="form-select @error('category_id') is-invalid @enderror">
                                                         <option value="">-- Chọn danh mục --</option>
-                                                        {{-- Cần loop qua $categories ở đây, tôi dùng giá trị tĩnh để demo --}}
-                                                        <option value="1"
-                                                            {{ old('category_id') == '1' ? 'selected' : '' }}>Category A
-                                                        </option>
-                                                        <option value="2"
-                                                            {{ old('category_id') == '2' ? 'selected' : '' }}>Category B
-                                                        </option>
+                                                        @foreach ($categories as $category)
+                                                            <option value="{{ $category->id }}"
+                                                                {{ old('category_id') == $category->id ? 'selected' : '' }}>
+                                                                {{ $category->name_cate }}
+                                                            </option>
+                                                        @endforeach
                                                     </select>
                                                     @error('category_id')
                                                         <div class="invalid-feedback">{{ $message }}</div>
@@ -385,8 +395,8 @@
                                             </div>
                                         </div>
 
-                                        <button type="submit" class="btn btn-primary btn-sm mt-3">Thêm sản phẩm
-                                            (TEST)</button>
+                                        <button type="submit" class="btn btn-primary btn-sm mt-3"> + Thêm sản phẩm
+                                        </button>
                                         <a href="#" class="btn btn-secondary btn-sm mt-3">Quay lại</a>
                                     </form>
                                 </div>

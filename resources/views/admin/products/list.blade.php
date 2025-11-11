@@ -22,8 +22,10 @@
                         <div class="card">
                             <div class="card-header">
 
-                                <a href="{{ route('admin.products.simple.create') }}" class="btn btn-primary btn-sm">+ Thêm
+                                <a href="{{ route('admin.products.createSimple') }}" class="btn btn-primary btn-sm">+ Thêm
                                     sản phẩm</a>
+                                    <a href="{{ route('admin.products.create') }}" class="btn btn-primary btn-sm">+ Thêm
+                                    sản phẩm biến thể</a>
                             </div>
 
                             <div class="card-body">
@@ -146,11 +148,11 @@
                                                     @endif
                                                 </td>
                                                 <td>
-                                                    <a href="{{ route('admin.products.simple.show', $product->id) }}" class="btn btn-sm btn-primary">Xem chi tiết</a>
-                                                    <a href="{{ route('admin.products.simple.edit', $product->id) }}"
+                                                    <a href="{{ route('admin.products.show', $product->id) }}" class="btn btn-sm btn-primary">Xem chi tiết</a>
+                                                    <a href="{{ route('admin.products.edit', $product->id) }}"
                                                         class="btn btn-sm btn-primary">Sửa</a>
 
-                                                    <form action="{{ route('admin.products.simple.delete') }}"
+                                                    <form action="{{ route('admin.products.delete') }}"
                                                         method="POST" style="display:inline-block"
                                                         onsubmit="return confirm('Bạn có chắc muốn xoá sản phẩm này?');">
                                                         @csrf

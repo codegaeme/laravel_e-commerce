@@ -177,7 +177,7 @@
                                 <div class="collapse" id="sidebarAdvancedUI">
                                     <ul class="nav-second-level">
                                         <li>
-                                            <a class='tp-link' href='{{route('admin.products.simple.list')}}'>List Products</a>
+                                            <a class='tp-link' href='{{route('admin.products.list')}}'>List Products</a>
                                         </li>
                                         <li>
                                             <a class='tp-link' href='{{route('admin.attributes.index')}}'>List Attributes</a>

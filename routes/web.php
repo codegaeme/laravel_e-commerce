@@ -41,6 +41,8 @@ Route::post('/renderVariant', [App\Http\Controllers\Client\ProductClientControll
 
 Route::prefix('admin')->as('admin.')->group(function () {
 
+    Route::get('/t', [App\Http\Controllers\Admin\ProductController::class, 'test'])->name('test');
+    Route::post('/test', [App\Http\Controllers\Admin\ProductController::class, 'createPost'])->name('testpost');
     //danhmuc
     Route::prefix('categories')->as('categories.')->group(function () {
         Route::get('/', [App\Http\Controllers\Admin\CategoryController::class, 'index'])->name('list-cate');
@@ -54,16 +56,14 @@ Route::prefix('admin')->as('admin.')->group(function () {
     //product
     // simple
     Route::prefix('products')->as('products.')->group(function () {
-        Route::get('/', [App\Http\Controllers\Admin\ProductController::class, 'home'])->name('home');
-        Route::prefix('simple')->as('simple.')->group(function () {
-            Route::get('/', [App\Http\Controllers\Admin\ProductController::class, 'index'])->name('list');
-            Route::get('/create', [App\Http\Controllers\Admin\ProductController::class, 'create'])->name('create');
-            Route::post('/store', [App\Http\Controllers\Admin\ProductController::class, 'store'])->name('store');
-            Route::get('/show/{id}', [App\Http\Controllers\Admin\ProductController::class, 'show'])->name('show');
-            Route::get('/edit/{id}', [App\Http\Controllers\Admin\ProductController::class, 'edit'])->name('edit');
-            Route::put('/update/{id}', [App\Http\Controllers\Admin\ProductController::class, 'update'])->name('update');
-            Route::delete('/delete', [App\Http\Controllers\Admin\ProductController::class, 'delete'])->name('delete');
-        });
+        Route::get('/', [App\Http\Controllers\Admin\ProductController::class, 'index'])->name('list');
+        Route::get('/createSimple', [App\Http\Controllers\Admin\ProductController::class, 'createSimple'])->name('createSimple');
+        Route::get('/create', [App\Http\Controllers\Admin\ProductController::class, 'create'])->name('create');
+        Route::post('/store', [App\Http\Controllers\Admin\ProductController::class, 'store'])->name('store');
+        Route::get('/show/{id}', [App\Http\Controllers\Admin\ProductController::class, 'show'])->name('show');
+        Route::get('/edit/{id}', [App\Http\Controllers\Admin\ProductController::class, 'edit'])->name('edit');
+        Route::put('/update/{id}', [App\Http\Controllers\Admin\ProductController::class, 'update'])->name('update');
+        Route::delete('/delete', [App\Http\Controllers\Admin\ProductController::class, 'delete'])->name('delete');
     });
 
     // thuọc tính
