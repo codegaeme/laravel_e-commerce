@@ -4,18 +4,18 @@ use App\Http\Controllers\Admin\VariantController;
 use GuzzleHttp\Psr7\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// Route::get('/', function () {
+//     return view('welcome');
+// });
 
 Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),
     'verified',
 ])->group(function () {
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
+    Route::get('/admin/dh', function () {
+        return view('admin.dashboard');
+    })->name('admin.dashboard');
 });
 
 Route::get('/my-order-detail/{id}', [App\Http\Controllers\Client\OrderController::class, 'myOrderDetail'])->name('myOrderDetail')->middleware('auth');
@@ -32,6 +32,8 @@ Route::delete('/cart/remove/{id}', [App\Http\Controllers\Client\CartController::
 
 Route::post('addcart', [App\Http\Controllers\Client\CartController::class, 'add'])->name('add-cart')->middleware('auth');
 Route::get('cart', [App\Http\Controllers\Client\CartController::class, 'list'])->name('list-cart')->middleware('auth');
+
+//home
 Route::get('/', [App\Http\Controllers\Client\HomeController::class, 'home'])->name('home');
 Route::get('/product/detail/{id}', [App\Http\Controllers\Client\ProductClientController::class, 'detail'])->name('product.detail');
 Route::post('/find-variant', [App\Http\Controllers\Client\ProductClientController::class, 'findVariant'])->name('findVariant');
@@ -89,4 +91,9 @@ Route::prefix('admin')->as('admin.')->middleware(['auth', 'admin'])->group(funct
     Route::get('orders', [App\Http\Controllers\Admin\OrderManagerController::class, 'index'])->name('order-list')->middleware('auth');
     Route::put('update-status-orders', [App\Http\Controllers\Admin\OrderManagerController::class, 'changeStt'])->name('update-status-orders')->middleware('auth');
     Route::put('update-status-orders-cus', [App\Http\Controllers\Admin\OrderManagerController::class, 'changeSttCus'])->name('update-status-orders-cus')->middleware('auth');
+
+    //shop
+
 });
+
+ Route::get('/shop',[App\Http\Controllers\Client\ShopController::class,'shop'])->name('shop');

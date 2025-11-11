@@ -63,7 +63,7 @@
                                 </div>
                             </li>
 
-                            <li>
+                            {{-- <li>
                                 <a href="#sidebarError" data-bs-toggle="collapse">
                                     <i data-feather="alert-octagon"></i>
                                     <span> Error Pages </span>
@@ -136,7 +136,7 @@
                                 </a>
                             </li>
 
-                            <li class="menu-title mt-2">General</li>
+                            <li class="menu-title mt-2">General</li> --}}
 
                             <li>
                                 <a href="#sidebarBaseui" data-bs-toggle="collapse">
@@ -188,7 +188,7 @@
                                 </div>
                             </li>
 
-                            <li>
+                          {{--   <li>
                                 <a href="#sidebarForms" data-bs-toggle="collapse">
                                     <i data-feather="briefcase"></i>
                                     <span> Forms </span>
@@ -294,7 +294,7 @@
                                         </li>
                                     </ul>
                                 </div>
-                            </li>
+                            </li> --}}
 
 
 

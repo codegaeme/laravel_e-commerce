@@ -18,12 +18,9 @@
                          </li>
 
                          <li>
-                             <a href="{{ route('home') }}">Shop</a>
+                             <a href="{{ route('shop') }}">Shop</a>
                          </li>
 
-                         <li class="label1" data-label1="hot">
-                             <a href="{{ route('home') }}">Features</a>
-                         </li>
 
                          <li>
                              <a href="{{ route('home') }}">Blog</a>

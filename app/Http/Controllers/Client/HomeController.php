@@ -9,7 +9,9 @@ use Illuminate\Http\Request;
 class HomeController extends Controller
 {
     public function home(){
-    $products= Product::with('category','images','variants')->paginate(10);
+    $products= Product::with('category','images','variants')->latest()
+            ->take(10)
+            ->get();;
 
         return view('component.client.home',compact('products'));
     }

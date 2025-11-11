@@ -408,7 +408,9 @@ class ProductController extends Controller
         ])->findOrFail($id);
         return view('admin.products.detail', compact('product'));
     }
-    public function edit() {}
+    public function edit() {
+       
+    }
     public function update() {}
 
 
